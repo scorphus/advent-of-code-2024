@@ -1,16 +1,14 @@
-import gleam/int
 import gleam/erlang
-import gleam/list
+import gleam/int
 import gleam/io
+import gleam/list
 import gleam/string
 
 pub fn main() {
   let lines = read_input([])
-  let #(list_one, list_two) = extract_lists(lines)
-  let list_one = list.sort(list_one, by: int.compare)
-  let list_two = list.sort(list_two, by: int.compare)
-  io.println("Part 1: " <> int.to_string(part_1(list_one, list_two)))
-  io.println("Part 2: " <> int.to_string(part_2(list_one, list_two)))
+  let reports = extract_reports(lines)
+  io.println("Part 1: " <> int.to_string(part_1(reports)))
+  io.println("Part 2: " <> int.to_string(part_2(reports)))
 }
 
 fn read_input(lines: List(String)) -> List(String) {
@@ -19,27 +17,22 @@ fn read_input(lines: List(String)) -> List(String) {
     Ok(line) -> {
       let line = string.trim(line)
       [line, ..lines]
-        |> read_input()
+      |> read_input()
     }
     Error(_) -> lines
   }
 }
 
-fn extract_lists(lines: List(String)) -> #(List(Int), List(Int)) {
+fn extract_reports(lines: List(String)) -> List(List(Int)) {
   case lines {
     [head, ..tail] -> {
-      let head = head
+      let head =
+        head
         |> string.split(" ")
-        |> list.filter(fn(s) { s != "" })
         |> list.map(parse_int)
-      let #(a, b) = case head {
-        [a, b] -> #(a, b)
-        _ -> #(-1, -1)
-      }
-      let #(list_one, list_two) = extract_lists(tail)
-      #([a, ..list_one], [b, ..list_two])
+      [head, ..extract_reports(tail)]
     }
-    [] -> #([], [])
+    [] -> []
   }
 }
 
@@ -50,21 +43,53 @@ fn parse_int(s: String) -> Int {
   }
 }
 
-fn part_1(list_one: List(Int), list_two: List(Int)) -> Int {
-  list.zip(list_one, list_two)
-    |> list.map(fn(x) { int.absolute_value(x.0 - x.1) })
-    |> list.fold(0, fn(acc, x) { acc + x })
+fn part_1(reports: List(List(Int))) -> Int {
+  get_diffs_list(reports)
+  |> list.fold(0, fn(acc, diffs) {
+    acc
+    + case diffs_are_safe(diffs) {
+      True -> 1
+      False -> 0
+    }
+  })
 }
 
-fn part_2(list_one: List(Int), list_two: List(Int)) -> Int {
-  list.fold(list_one, [], fn(acc_x, x) {
-    [x * list.fold_until(list_two, 0, fn(acc_y, y) {
-      case y {
-        n if n < x -> list.Continue(acc_y)
-        n if n == x -> list.Continue(acc_y + 1)
-        _ -> list.Stop(acc_y)
-      }
-    }), ..acc_x]
+fn get_diffs_list(reports: List(List(Int))) -> List(List(Int)) {
+  list.fold(reports, [], fn(acc, report) { [get_diffs(report), ..acc] })
+}
+
+fn get_diffs(report: List(Int)) -> List(Int) {
+  list.drop(report, 1)
+  |> list.zip(report)
+  |> list.map(fn(x) { x.0 - x.1 })
+}
+
+fn diffs_are_safe(diffs: List(Int)) -> Bool {
+  list.all(diffs, fn(x) { x >= 1 && x <= 3 })
+  || list.all(diffs, fn(x) { x >= -3 && x <= -1 })
+}
+
+fn part_2(reports: List(List(Int))) -> Int {
+  list.fold(reports, 0, fn(acc, report) {
+    let diffs = get_diffs(report)
+    case diffs_are_safe(diffs) {
+      True -> acc + 1
+      False -> acc + iter_for_safeness(report, [])
+    }
   })
-    |> list.fold(0, fn(acc, x) { acc + x })
+}
+
+fn iter_for_safeness(report: List(Int), head_report: List(Int)) -> Int {
+  case report {
+    [head, ..tail] -> {
+      let diffs =
+        list.flatten([head_report, tail])
+        |> get_diffs()
+      case diffs_are_safe(diffs) {
+        True -> 1
+        False -> iter_for_safeness(tail, list.flatten([head_report, [head]]))
+      }
+    }
+    [] -> 0
+  }
 }
