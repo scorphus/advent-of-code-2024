@@ -1,5 +1,6 @@
 import gleam/erlang
 import gleam/int
+import gleam/list
 import gleam/string
 
 pub fn read_input(lines: List(String)) -> List(String) {
@@ -10,7 +11,7 @@ pub fn read_input(lines: List(String)) -> List(String) {
       [line, ..lines]
       |> read_input()
     }
-    Error(_) -> lines
+    Error(_) -> list.reverse(lines)
   }
 }
 
