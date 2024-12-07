@@ -18,6 +18,12 @@ pub fn read_input(lines: List(String)) -> List(String) {
 pub fn parse_int(s: String) -> Int {
   case int.parse(s) {
     Ok(i) -> i
-    Error(_) -> -1
+    Error(_) -> panic as "Could not parse int"
   }
 }
+
+@external(erlang, "math", "log10")
+pub fn log10(x: value) -> value
+
+@external(erlang, "math", "pow")
+pub fn pow(x: value, n: value) -> value
