@@ -18,7 +18,7 @@ pub fn read_input(lines: List(String)) -> List(String) {
 pub fn read_line() -> String {
   let line = erlang.get_line("")
   case line {
-    Ok(line) -> line
+    Ok(line) -> string.trim(line)
     Error(_) -> panic as "Could not read line"
   }
 }
@@ -26,7 +26,7 @@ pub fn read_line() -> String {
 pub fn parse_int(s: String) -> Int {
   case int.parse(s) {
     Ok(i) -> i
-    Error(_) -> panic as { "Could not parse int from" <> s }
+    Error(_) -> panic as { "Could not parse int from " <> s }
   }
 }
 
