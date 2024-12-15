@@ -10,6 +10,7 @@ import day06
 import day07
 import day08
 import day09
+import day10
 
 pub fn main() {
   case argv.load().arguments {
@@ -22,6 +23,7 @@ pub fn main() {
     ["7"] -> day07.main()
     ["8"] -> day08.main()
     ["9"] -> day09.main()
+    ["10"] -> day10.main()
     _ -> io.println("No valid day specified. Usage: aoc24 <day>")
   }
 }
